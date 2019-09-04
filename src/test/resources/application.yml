@@ -1,0 +1,45 @@
+csv-config:
+  temp-file-path: D:/temp
+  exportc:
+    - id: tag_val_detail_export
+      file-name: 商品明细
+      compress:
+        enabled: true
+        file-size: 100000
+        type: zip
+      headers: 商品ID,xxxx,商品名称,xxx,xxx,xxxx
+      cols: goods_id,goods_sn,goods_name,site_tp,site_id,new_cate_1_nm
+      desc: "导出商品明细"
+
+  importc:
+    - id: throng-0
+      desc : "上传member_id"
+      max-size: 30 #单位m
+      start-row: 2
+      separator: ","
+      valicate:
+        - { col: 0, name: member_id,validateRegex: "^\\d{1,10}$", hint: "请填写10位以内的数字",required: true}
+    - id: throng-1
+      desc : "上传email+语言+站点"
+      max-size: 30 #单位m
+      separator: ","
+      start-row: 2
+      valicate:
+        - { col: 0, name: email,required: true,validateRegex: "^[éûàçùôîèíá¡N¿UóñúäöüßàèùåäöãáéàêçíşçöüğşàâäèéêëîïôœùûüÿçÀÂÄÈÉÊËÎÏÔŒÙÛÜŸÇA-Za-z0-9_\\-\\.\\u4e00-\\u9fa5]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$", hint: "邮箱地址错误"}
+        - { col: 1, name: language ,required: true,hint: "语言错误" ,td-id: 11}
+        - { col: 2, name: site_id,required: true,hint: "站点错误" ,td-id: 13 }
+    - id: throng-3
+      desc: "上传member_id+占位符"
+      max-size: 30 #单位m
+      separator: ","
+      start-row: 2
+      check-column-size: false
+      valicate:
+        - { col: 0, name: member_id,validateRegex: "^\\d{1,10}$", hint: "请填写10位以内的数字",required: true}
+    - id: throng-4
+      desc: "上传email"
+      max-size: 30 #单位m
+      start-row: 2
+      separator: ","
+      valicate:
+        - { col: 0, name: email,required: true,validateRegex: "^[éûàçùôîèíá¡N¿UóñúäöüßàèùåäöãáéàêçíşçöüğşàâäèéêëîïôœùûüÿçÀÂÄÈÉÊËÎÏÔŒÙÛÜŸÇA-Za-z0-9_\\-\\.\\u4e00-\\u9fa5]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$", hint: "邮箱地址错误"}
