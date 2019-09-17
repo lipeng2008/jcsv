@@ -89,6 +89,11 @@ public class CsvContext {
                 continue;
             }
             String[] colValues=line.split(importc.getSeparator());
+            if(colValues==null||colValues.length==0){
+                sb.append("第"+j+"行为空").append(enterLine);
+                errorCount++;
+                continue;
+            }
             Map<String,Object> rs=new HashMap<String,Object>();
             for (int i=0;i<colValues.length;i++){
                 if(validcates.size()>i&&validcates!=null&&validcates.get(i)!=null){
@@ -291,6 +296,14 @@ public class CsvContext {
         if(!fileP.exists()){
             fileP.mkdirs();
         }
+        long total=page.getTotal();
+        if(total<=0){
+            String errorFilePath=filePath+"error.csv";
+            if(!new File(errorFilePath).exists()){
+                FileUtils.createCsv(errorFilePath,"导出数据为空");
+            }
+            return errorFilePath;
+        }
         if(properties.getCompress().isEnabled()){
             int fileNum=1;
             List<Map> list=page.getList(pageSize,pageNum);
@@ -317,6 +330,9 @@ public class CsvContext {
                 if(sb.length()>0){
                     FileUtils.createCsv(compressPath+fileNum+".csv",sb.toString()+"\r\n");
                 }
+                if(list.size()<pageSize){
+                    break;
+                }
                 pageNum++;
                 list=page.getList(pageSize,pageNum);
             }
@@ -326,7 +342,6 @@ public class CsvContext {
             org.apache.commons.io.FileUtils.deleteDirectory(fileP);
             return finalPath;
         }else{
-            long total=page.getTotal();
             if(total>500000){
                 log.error("properties :{}", JSON.toJSONString(properties));
                 throw new CsvExportException("数据量超过50W，建议使用压缩导出模式，请修改导出配置");
