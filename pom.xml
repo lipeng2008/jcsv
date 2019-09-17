@@ -4,7 +4,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.jcsv</groupId>
+    <groupId>com.github.lipengxs.jcsv</groupId>
     <artifactId>jcsv-spring-boot-starter</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
