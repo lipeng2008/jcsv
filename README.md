@@ -12,9 +12,9 @@ jcsv现在只支持集成到springboot工程中
 
 ```java
 <dependency>
-    <groupId>com.github.jcsv</groupId>
-    <artifactId>jcsv-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
+  <groupId>com.github.lipengxs.jcsv</groupId>
+  <artifactId>jcsv-spring-boot-starter</artifactId>
+  <version>1.0.0</version>
 </dependency>
 ```
 
