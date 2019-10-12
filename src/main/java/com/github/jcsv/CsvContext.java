@@ -291,7 +291,10 @@ public class CsvContext {
         String[] cols=properties.getCols().split(",");
         int pageNum=1;
         String filePath=getTempPath();
-
+        File fileP=new File(filePath);
+        if(!fileP.exists()){
+            fileP.mkdirs();
+        }
         long total=page.getTotal();
         if(total<=0){
             String errorFilePath=filePath+"error.csv";
@@ -300,10 +303,7 @@ public class CsvContext {
             }
             return errorFilePath;
         }
-        File fileP=new File(filePath);
-        if(!fileP.exists()){
-            fileP.mkdirs();
-        }
+
         if(properties.getCompress().isEnabled()){
             String compressPath=filePath+System.currentTimeMillis()+ File.separator;
             File filec=new File(compressPath);
