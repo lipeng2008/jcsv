@@ -292,9 +292,13 @@ public class CsvContext {
         int pageNum=1;
         String filePath=getTempPath();
         String compressPath=filePath+System.currentTimeMillis()+ File.separator;
-        File fileP=new File(compressPath);
+        File fileP=new File(filePath);
+        File filec=new File(compressPath);
         if(!fileP.exists()){
             fileP.mkdirs();
+        }
+        if(!filec.exists()){
+            filec.mkdirs();
         }
         long total=page.getTotal();
         if(total<=0){
