@@ -38,7 +38,7 @@ public class CsvContext {
         this.csvConfig=csvConfig;
     }
     public List<Map<String,Object>> transfer(MultipartFile file, String id) throws Exception{
-       return transfer(file,id,null);
+        return transfer(file,id,null);
     }
 
     /**
@@ -291,15 +291,7 @@ public class CsvContext {
         String[] cols=properties.getCols().split(",");
         int pageNum=1;
         String filePath=getTempPath();
-        String compressPath=filePath+System.currentTimeMillis()+ File.separator;
-        File fileP=new File(filePath);
-        File filec=new File(compressPath);
-        if(!fileP.exists()){
-            fileP.mkdirs();
-        }
-        if(!filec.exists()){
-            filec.mkdirs();
-        }
+
         long total=page.getTotal();
         if(total<=0){
             String errorFilePath=filePath+"error.csv";
@@ -308,7 +300,16 @@ public class CsvContext {
             }
             return errorFilePath;
         }
+        File fileP=new File(filePath);
+        if(!fileP.exists()){
+            fileP.mkdirs();
+        }
         if(properties.getCompress().isEnabled()){
+            String compressPath=filePath+System.currentTimeMillis()+ File.separator;
+            File filec=new File(compressPath);
+            if(!filec.exists()){
+                filec.mkdirs();
+            }
             int fileNum=1;
             List<Map> list=page.getList(pageSize,pageNum);
             FileUtils.createCsv(compressPath+fileNum+".csv",properties.getHeaders()+"\r\n");
@@ -334,9 +335,6 @@ public class CsvContext {
                 if(sb.length()>0){
                     FileUtils.createCsv(compressPath+fileNum+".csv",sb.toString()+"\r\n");
                 }
-                if(list.size()<pageSize){
-                    break;
-                }
                 pageNum++;
                 list=page.getList(pageSize,pageNum);
             }
@@ -352,10 +350,9 @@ public class CsvContext {
             }
             List<Map> list=page.getList(pageSize,pageNum);
 
-            String finalPath=filePath+properties.getFileName()+".csv";
+            String finalPath=filePath+properties.getFileName()+System.currentTimeMillis()+".csv";
             FileUtils.createCsv(finalPath,properties.getHeaders()+"\r\n");
             while (list!=null&&list.size()>0){
-
                 StringBuilder sb=new StringBuilder();
                 for (Map<String,Object> item:list){
                     List<String> mm=new ArrayList<>();
@@ -365,9 +362,6 @@ public class CsvContext {
                     sb.append(String.join(",",mm)).append("\r\n");
                 }
                 FileUtils.createCsv(finalPath,sb.toString());
-                if(list.size()<pageSize){
-                    break;
-                }
                 pageNum++;
                 list=page.getList(pageSize,pageNum);
             }
