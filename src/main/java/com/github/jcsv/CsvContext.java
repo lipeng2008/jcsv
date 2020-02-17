@@ -40,7 +40,7 @@ public class CsvContext {
      * @return
      * @throws Exception
      */
-    public ImportResponse transfer(ImportRequest request) throws Exception {
+    public ImportResponse transfer(ImportRequest request){
         CsvImportProperties importc = getUploadConifg(request.getId());
         MultipartFile file = request.getFile();
         List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
@@ -54,7 +54,15 @@ public class CsvContext {
         if (importc.getMaxSize() != 0 && file.getSize() >= importc.getMaxSize() * 1024 * 1024) {
             throw new CsvImportException("上传文件超过最大限制:" + importc.getMaxSize() + "m");
         }
-        List<String> listString = FileUtils.parseCsv(file.getInputStream());
+        List<String> listString=null;
+        try{
+            listString = FileUtils.parseCsv(file.getInputStream());
+        }catch (IOException e){
+            throw new CsvImportException(e.getMessage());
+        }
+        if (listString == null || listString.size() <= 1) {
+            throw new CsvImportException("上传文件内容为空");
+        }
         if (listString == null || listString.size() <= 1) {
             throw new CsvImportException("上传文件内容为空");
         }
@@ -132,105 +140,6 @@ public class CsvContext {
         }
         return new ImportResponse.Builder().setErrorCount(errorCount).setErrorMsg(sb.toString()).setList(result).
                 setTotalCount(listString.size() - importc.getStartRow()).build();
-    }
-
-    /**
-     * @param file
-     * @param id
-     * @param params
-     * @return
-     * @throws Exception
-     */
-    public List<Map<String, Object>> transfer(MultipartFile file, String id, Object params) throws Exception {
-        CsvImportProperties importc = getUploadConifg(id);
-        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
-        String type = FilenameUtils.getExtension(file.getOriginalFilename());
-        if (!"csv".equals(type)) {
-            throw new CsvImportException("请上传csv模板文件！");
-        }
-        if (importc == null) {
-            throw new CsvImportException("请在配置文件中配置csv导入信息");
-        }
-        if (importc.getMaxSize() != 0 && file.getSize() >= importc.getMaxSize() * 1024 * 1024) {
-            throw new CsvImportException("上传文件超过最大限制:" + importc.getMaxSize() + "m");
-        }
-        List<String> listString = FileUtils.parseCsv(file.getInputStream());
-        if (listString == null || listString.size() <= 1) {
-            throw new CsvImportException("上传文件内容为空");
-        }
-        StringBuilder sb = new StringBuilder();
-        List<ColValidcateProperties> validcates = importc.getValicate();
-        String[] headers = getHeaders(listString.get(0), importc.getSeparator());
-        if (!checkHeaders(headers)) {
-            throw new CsvImportException("上传文件表头信息含有非法字符");
-        }
-        int errorCount = 0;
-        if (importc.isCheckColumnSize() && importc.getStartRow() > 0 && validcates.size() != headers.length) {
-            throw new CsvImportException("上传文件与模板不一致，请重新上传");
-        }
-        for (int j = importc.getStartRow() - 1; j < listString.size(); j++) {
-            String line = listString.get(j);
-            //错误数超过20，则只取
-            if (errorCount >= 20) {
-                break;
-            }
-            if (StringUtils.trim(line).length() == 0) {
-                sb.append("第" + j + "行为空").append(enterLine);
-                errorCount++;
-                continue;
-            }
-            String[] colValues = line.split(importc.getSeparator());
-            if (colValues == null || colValues.length == 0) {
-                sb.append("第" + j + "行为空").append(enterLine);
-                errorCount++;
-                continue;
-            }
-            Map<String, Object> rs = new HashMap<String, Object>();
-            for (int i = 0; i < colValues.length; i++) {
-                if (validcates.size() > i && validcates != null && validcates.get(i) != null) {
-                    String errorRow = "第" + (j + 1) + "行";
-                    if (importc.isCheckColumnSize() && validcates.size() != colValues.length) {
-                        sb.append(errorRow + "包含关键字空格或者逗号").append(enterLine);
-                        errorCount++;
-                        break;
-                    }
-                    ColValidcateProperties v = validcates.get(i);
-                    if (v.isRequired() && StringUtils.isBlank(colValues[i])) {
-                        sb.append(errorRow + v.getName() + "不能为空").append(enterLine);
-                        errorCount++;
-                        continue;
-                    }
-                    if (StringUtils.isNotBlank(v.getValidateRegex()) && !colValues[i].trim().matches(v.getValidateRegex())) {
-                        sb.append(errorRow + v.getName() + v.getHint()).append(enterLine);
-                        errorCount++;
-                        continue;
-                    }
-                    if (StringUtils.isNotBlank(v.getValidator())) {
-                        Validator validator = (Validator) SpringContext.getSingleton().getBean(v.getValidator());
-                        if (validator != null && !validator.validcate(colValues[i].trim(), v, colValues, params)) {
-                            sb.append(errorRow + v.getName() + v.getHint()).append(enterLine);
-                            errorCount++;
-                            continue;
-                        }
-                    }
-                    if (sb.length() == 0) {
-                        rs.put(v.getName(), colValues[i]);
-                    }
-                } else {
-                    if (headers.length != colValues.length) {
-                        sb.append("第" + j + "行有关键字空格或者逗号").append(enterLine);
-                        errorCount++;
-                        break;
-                    }
-                    rs.put(headers[i], colValues[i]);
-                }
-            }
-            result.add(rs);
-        }
-        if (sb.length() > 0) {
-            throw new CsvImportException(sb.toString());
-        }
-        return result;
     }
 
     private String[] getHeaders(String headerstr, String split) {
