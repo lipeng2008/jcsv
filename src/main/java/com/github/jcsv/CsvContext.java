@@ -78,6 +78,7 @@ public class CsvContext {
         List<Integer> errorLineNum=new ArrayList<>();
         for (int j = importc.getStartRow() - 1; j < listString.size(); j++) {
             String line = listString.get(j);
+            boolean bFlag=true;
             //错误数超过20，则只取20
             if (!request.isErrorFilter() && errorLineNum.size() >= 20) {
                 break;
@@ -85,12 +86,14 @@ public class CsvContext {
             if (StringUtils.trim(line).length() == 0) {
                 sb.append("第" + j + "行为空").append(enterLine);
                 errorLineNum.add(j);
+                bFlag=false;
                 continue;
             }
             String[] colValues = line.split(importc.getSeparator());
             if (colValues == null || colValues.length == 0) {
                 sb.append("第" + j + "行为空").append(enterLine);
                 errorLineNum.add(j);
+                bFlag=false;
                 continue;
             }
             Map<String, Object> rs = new HashMap<String, Object>();
@@ -99,25 +102,25 @@ public class CsvContext {
                     String errorRow = "第" + (j + 1) + "行";
                     if (importc.isCheckColumnSize() && validcates.size() != colValues.length) {
                         sb.append(errorRow + "包含关键字空格或者逗号").append(enterLine);
-                        errorLineNum.add(j);
+                        bFlag=false;
                         break;
                     }
                     ColValidcateProperties v = validcates.get(i);
                     if (v.isRequired() && StringUtils.isBlank(colValues[i])) {
                         sb.append(errorRow + v.getName() + "不能为空").append(enterLine);
-                        errorLineNum.add(j);
+                        bFlag=false;
                         continue;
                     }
                     if (StringUtils.isNotBlank(v.getValidateRegex()) && !colValues[i].trim().matches(v.getValidateRegex())) {
                         sb.append(errorRow + v.getName() + v.getHint()).append(enterLine);
-                        errorLineNum.add(j);
+                        bFlag=false;
                         continue;
                     }
                     if (StringUtils.isNotBlank(v.getValidator())) {
                         Validator validator = (Validator) SpringContext.getSingleton().getBean(v.getValidator());
                         if (validator != null && !validator.validcate(colValues[i].trim(), v, colValues, request.getParams())) {
                             sb.append(errorRow + v.getName() + v.getHint()).append(enterLine);
-                            errorLineNum.add(j);
+                            bFlag=false;
                             continue;
                         }
                     }
@@ -127,16 +130,23 @@ public class CsvContext {
                 } else {
                     if (headers.length != colValues.length) {
                         sb.append("第" + j + "行有关键字空格或者逗号").append(enterLine);
-                        errorLineNum.add(j);
+                        bFlag=false;
                         break;
                     }
                     rs.put(headers[i], colValues[i]);
                 }
             }
-            result.add(rs);
+            if(bFlag){
+                result.add(rs);
+            }else{
+                errorLineNum.add(j);
+            }
         }
         if (!request.isErrorFilter() && sb.length() > 0) {
             throw new CsvImportException(sb.toString());
+        }
+        if(result.size()==0){
+            throw new CsvImportException("上传文件为空或者符合要求的记录数为0");
         }
         return new CsvImportResponse.Builder().setErrorCount(errorLineNum.size()).setErrorMsg(sb.toString()).setList(result).
                 setTotalCount(listString.size() - importc.getStartRow()).setErrorLineNum(errorLineNum).build();
