@@ -10,11 +10,11 @@ jcsv现在只支持集成到springboot工程中
 
 #### 依赖库
 
-```java
+```
 <dependency>
   <groupId>com.github.lipengxs.jcsv</groupId>
   <artifactId>jcsv-spring-boot-starter</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 ```
 
@@ -83,11 +83,11 @@ try {
             if(file==null){
                 return D.error("请上传文件");
             }
-           
-            //解析模板内容，对比模板内容是否和上传的一样外层需要抓取异常因为错误信息是以异常来进行鉴别
-            List<Map<String,Object>> list= csvContext.transfer(file,"throng-0",product);
-            
-            return D.ok(hash);
+            CsvImportRequest ir=new CsvImportRequest.Builder().setErrorFilter(filterError).setFile(file)
+                               .setId("upload-1").build();
+             //解析模板内容，对比模板内容是否和上传的一样
+            CsvImportResponse response= csvContext.transfer(ir);
+            return D.ok(response.getList());
         } catch (CsvImportException e) {
             return D.error(e.getMessage());
         } catch (Exception e) {
