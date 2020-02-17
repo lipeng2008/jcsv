@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @Description:
  */
 @Data
-public class ImportRequest {
+public class CsvImportRequest {
     private MultipartFile file;
     private String id;
     private Object params;
@@ -41,11 +41,11 @@ public class ImportRequest {
             return this;
         }
 
-        public ImportRequest build() {
-            return new ImportRequest(this);
+        public CsvImportRequest build() {
+            return new CsvImportRequest(this);
         }
     }
-    private ImportRequest(Builder builder){
+    private CsvImportRequest(Builder builder){
         this.file=builder.file;
         this.errorFilter=builder.errorFilter;
         this.id=builder.id;

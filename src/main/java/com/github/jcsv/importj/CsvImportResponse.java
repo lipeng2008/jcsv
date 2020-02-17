@@ -1,7 +1,6 @@
 package com.github.jcsv.importj;
 
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -12,17 +11,19 @@ import java.util.Map;
  * @Description:
  */
 @Data
-public class ImportResponse {
+public class CsvImportResponse {
     private List<Map<String,Object>> list;
     private String errorMsg;
     private int totalCount;
     private int errorCount;
+    private List<Integer> errorLineNum;
 
     public static class Builder {
         private List<Map<String,Object>> list;
         private String errorMsg;
         private int totalCount;
         private int errorCount;
+        private List<Integer> errorLineNum;
 
         public Builder setList(List<Map<String, Object>> list) {
             this.list = list;
@@ -44,14 +45,20 @@ public class ImportResponse {
             return this;
         }
 
-        public ImportResponse build() {
-            return new ImportResponse(this);
+        public Builder setErrorLineNum(List<Integer> errorLineNum) {
+            this.errorLineNum = errorLineNum;
+            return this;
+        }
+
+        public CsvImportResponse build() {
+            return new CsvImportResponse(this);
         }
     }
-    private ImportResponse(ImportResponse.Builder builder){
+    private CsvImportResponse(CsvImportResponse.Builder builder){
         this.list=builder.list;
         this.errorCount=builder.errorCount;
         this.totalCount=builder.totalCount;
         this.errorMsg=builder.errorMsg;
+        this.errorLineNum=builder.errorLineNum;
     }
 }

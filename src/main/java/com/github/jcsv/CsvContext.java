@@ -40,7 +40,7 @@ public class CsvContext {
      * @return
      * @throws Exception
      */
-    public ImportResponse transfer(ImportRequest request){
+    public CsvImportResponse transfer(CsvImportRequest request){
         CsvImportProperties importc = getUploadConifg(request.getId());
         MultipartFile file = request.getFile();
         List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
@@ -72,25 +72,25 @@ public class CsvContext {
         if (!checkHeaders(headers)) {
             throw new CsvImportException("上传文件表头信息含有非法字符");
         }
-        int errorCount = 0;
         if (importc.isCheckColumnSize() && importc.getStartRow() > 0 && validcates.size() != headers.length) {
             throw new CsvImportException("上传文件与模板不一致，请重新上传");
         }
+        List<Integer> errorLineNum=new ArrayList<>();
         for (int j = importc.getStartRow() - 1; j < listString.size(); j++) {
             String line = listString.get(j);
             //错误数超过20，则只取20
-            if (!request.isErrorFilter() && errorCount >= 20) {
+            if (!request.isErrorFilter() && errorLineNum.size() >= 20) {
                 break;
             }
             if (StringUtils.trim(line).length() == 0) {
                 sb.append("第" + j + "行为空").append(enterLine);
-                errorCount++;
+                errorLineNum.add(j);
                 continue;
             }
             String[] colValues = line.split(importc.getSeparator());
             if (colValues == null || colValues.length == 0) {
                 sb.append("第" + j + "行为空").append(enterLine);
-                errorCount++;
+                errorLineNum.add(j);
                 continue;
             }
             Map<String, Object> rs = new HashMap<String, Object>();
@@ -99,25 +99,25 @@ public class CsvContext {
                     String errorRow = "第" + (j + 1) + "行";
                     if (importc.isCheckColumnSize() && validcates.size() != colValues.length) {
                         sb.append(errorRow + "包含关键字空格或者逗号").append(enterLine);
-                        errorCount++;
+                        errorLineNum.add(j);
                         break;
                     }
                     ColValidcateProperties v = validcates.get(i);
                     if (v.isRequired() && StringUtils.isBlank(colValues[i])) {
                         sb.append(errorRow + v.getName() + "不能为空").append(enterLine);
-                        errorCount++;
+                        errorLineNum.add(j);
                         continue;
                     }
                     if (StringUtils.isNotBlank(v.getValidateRegex()) && !colValues[i].trim().matches(v.getValidateRegex())) {
                         sb.append(errorRow + v.getName() + v.getHint()).append(enterLine);
-                        errorCount++;
+                        errorLineNum.add(j);
                         continue;
                     }
                     if (StringUtils.isNotBlank(v.getValidator())) {
                         Validator validator = (Validator) SpringContext.getSingleton().getBean(v.getValidator());
                         if (validator != null && !validator.validcate(colValues[i].trim(), v, colValues, request.getParams())) {
                             sb.append(errorRow + v.getName() + v.getHint()).append(enterLine);
-                            errorCount++;
+                            errorLineNum.add(j);
                             continue;
                         }
                     }
@@ -127,7 +127,7 @@ public class CsvContext {
                 } else {
                     if (headers.length != colValues.length) {
                         sb.append("第" + j + "行有关键字空格或者逗号").append(enterLine);
-                        errorCount++;
+                        errorLineNum.add(j);
                         break;
                     }
                     rs.put(headers[i], colValues[i]);
@@ -138,8 +138,8 @@ public class CsvContext {
         if (!request.isErrorFilter() && sb.length() > 0) {
             throw new CsvImportException(sb.toString());
         }
-        return new ImportResponse.Builder().setErrorCount(errorCount).setErrorMsg(sb.toString()).setList(result).
-                setTotalCount(listString.size() - importc.getStartRow()).build();
+        return new CsvImportResponse.Builder().setErrorCount(errorLineNum.size()).setErrorMsg(sb.toString()).setList(result).
+                setTotalCount(listString.size() - importc.getStartRow()).setErrorLineNum(errorLineNum).build();
     }
 
     private String[] getHeaders(String headerstr, String split) {
