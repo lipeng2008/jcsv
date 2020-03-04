@@ -97,6 +97,12 @@ public class CsvContext {
                 continue;
             }
             Map<String, Object> rs = new HashMap<String, Object>();
+            if(validcates.size()>colValues.length){
+                sb.append("第" + j + "行只有"+colValues.length+"列，不符合要求").append(enterLine);
+                errorLineNum.add(j);
+                bFlag=false;
+                continue;
+            }
             for (int i = 0; i < colValues.length; i++) {
                 if (validcates.size() > i && validcates != null && validcates.get(i) != null) {
                     String errorRow = "第" + (j + 1) + "行";
