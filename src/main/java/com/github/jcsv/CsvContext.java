@@ -151,9 +151,6 @@ public class CsvContext {
         if (!request.isErrorFilter() && sb.length() > 0) {
             throw new CsvImportException(sb.toString());
         }
-        if(result.size()==0){
-            throw new CsvImportException("上传文件为空或者符合要求的记录数为0");
-        }
         return new CsvImportResponse.Builder().setErrorCount(errorLineNum.size()).setErrorMsg(sb.toString()).setList(result).
                 setTotalCount(listString.size() - importc.getStartRow()).setErrorLineNum(errorLineNum).build();
     }
