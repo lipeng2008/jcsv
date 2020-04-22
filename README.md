@@ -14,7 +14,7 @@ jcsv现在只支持集成到springboot工程中
 <dependency>
   <groupId>com.github.lipengxs.jcsv</groupId>
   <artifactId>jcsv-spring-boot-starter</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
 </dependency>
 ```
 
