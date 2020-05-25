@@ -69,10 +69,10 @@ public class CsvContext {
         StringBuilder sb = new StringBuilder();
         List<ColValidcateProperties> validcates = importc.getValicate();
         String[] headers = getHeaders(listString.get(0), importc.getSeparator());
-        if (!checkHeaders(headers)) {
+        if (!checkHeaderInvaildSymbol(headers)) {
             throw new CsvImportException("上传文件表头信息含有非法字符");
         }
-        if (importc.isCheckColumnSize() && importc.getStartRow() > 0 && validcates.size() != headers.length) {
+        if (importc.isCheckColumnSize() && importc.getStartRow() > 0 && !checkHeaderTemplate(headers,validcates)) {
             throw new CsvImportException("上传文件与模板不一致，请重新上传");
         }
         List<Integer> errorLineNum=new ArrayList<>();
@@ -166,7 +166,7 @@ public class CsvContext {
      * @param headerStrs
      * @return
      */
-    private boolean checkHeaders(String[] headerStrs) {
+    private boolean checkHeaderInvaildSymbol(String[] headerStrs) {
         Pattern pt = Pattern.compile("^[0-9a-zA-Z_]+$");
         if (headerStrs != null && headerStrs.length > 0) {
             for (String header : headerStrs) {
@@ -182,7 +182,17 @@ public class CsvContext {
         }
         return false;
     }
-
+    private boolean checkHeaderTemplate(String[] headerStrs, List<ColValidcateProperties> validcates) {
+        if(validcates.size()!=headerStrs.length){
+            return false;
+        }
+        for(int i=0;i<validcates.size();i++){
+            if(!validcates.get(i).getName().equals(headerStrs[i])){
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * getUploadConifg
