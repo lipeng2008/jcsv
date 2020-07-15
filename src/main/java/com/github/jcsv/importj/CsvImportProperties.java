@@ -16,8 +16,10 @@ public class CsvImportProperties {
     private int maxSize;
     private int startRow;
     private List<ColValidcateProperties> valicate;
+    private String headerValidcate;
     private String desc;
     private String separator;
     private boolean checkColumnSize=true;
+    private boolean colFromHeader=false;
 
 }

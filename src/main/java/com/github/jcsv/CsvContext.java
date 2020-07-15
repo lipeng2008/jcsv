@@ -11,10 +11,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,21 +42,22 @@ public class CsvContext {
      */
     public CsvImportResponse transfer(CsvImportRequest request){
         CsvImportProperties importc = getUploadConifg(request.getId());
-        MultipartFile file = request.getFile();
+        String fileName=request.getFileName();
+        long size=request.getFileSize();
         List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
-        String type = FilenameUtils.getExtension(file.getOriginalFilename());
+        String type = FilenameUtils.getExtension(fileName);
         if (!"csv".equals(type)) {
             throw new CsvImportException("请上传csv模板文件！");
         }
         if (importc == null) {
             throw new CsvImportException("请在配置文件中配置csv导入信息");
         }
-        if (importc.getMaxSize() != 0 && file.getSize() >= importc.getMaxSize() * 1024 * 1024) {
+        if (importc.getMaxSize() != 0 && size >= importc.getMaxSize() * 1024 * 1024) {
             throw new CsvImportException("上传文件超过最大限制:" + importc.getMaxSize() + "m");
         }
         List<String> listString=null;
         try{
-            listString = FileUtils.parseCsv(file.getInputStream());
+            listString = FileUtils.parseCsv(request.getInputStream());
         }catch (IOException e){
             throw new CsvImportException(e.getMessage());
         }
@@ -74,6 +75,12 @@ public class CsvContext {
         }
         if (importc.isCheckColumnSize() && importc.getStartRow() > 0 && !checkHeaderTemplate(headers,validcates)) {
             throw new CsvImportException("上传文件与模板不一致，请重新上传");
+        }
+        if(StringUtils.isNotBlank(importc.getHeaderValidcate())){
+            HeaderValidator validator = (HeaderValidator) SpringContext.getSingleton().getBean(importc.getHeaderValidcate());
+            if (validator != null && !validator.validcate(headers,validcates)) {
+                throw new CsvImportException("文件头有重复或者其他异常，请检查题头！");
+            }
         }
         List<Integer> errorLineNum=new ArrayList<>();
         for (int j = importc.getStartRow() - 1; j < listString.size(); j++) {
@@ -111,7 +118,21 @@ public class CsvContext {
                         bFlag=false;
                         break;
                     }
-                    ColValidcateProperties v = validcates.get(i);
+
+                    ColValidcateProperties v = null;
+                    if(importc.isColFromHeader()){
+                        for (ColValidcateProperties valid: validcates) {
+                            if(valid.getName().equals(headers[i])){
+                                v = validcates.get(i);
+                                break;
+                            }
+                        }
+                    }else{
+                        v = validcates.get(i);
+                    }
+                    if(v==null){
+                        continue;
+                    }
                     if (v.isRequired() && StringUtils.isBlank(colValues[i])) {
                         sb.append(errorRow + v.getName() + "不能为空").append(enterLine);
                         bFlag=false;
@@ -395,6 +416,5 @@ public class CsvContext {
         return csvConfig.getTempFilePath() + File.separator
                 + DateFormatUtils.format(new Date(), "yyyyMMdd") + File.separator;
     }
-
 
 }
