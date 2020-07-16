@@ -91,21 +91,21 @@ public class CsvContext {
                 break;
             }
             if (StringUtils.trim(line).length() == 0) {
-                sb.append("第" + j + "行为空").append(enterLine);
+                sb.append("第" + (j + 1) + "行为空").append(enterLine);
                 errorLineNum.add(j);
                 bFlag=false;
                 continue;
             }
             String[] colValues = line.split(importc.getSeparator());
             if (colValues == null || colValues.length == 0) {
-                sb.append("第" + j + "行为空").append(enterLine);
+                sb.append("第" + (j + 1) + "行为空").append(enterLine);
                 errorLineNum.add(j);
                 bFlag=false;
                 continue;
             }
             Map<String, Object> rs = new HashMap<String, Object>();
-            if(validcates.size()>colValues.length){
-                sb.append("第" + j + "行只有"+colValues.length+"列，不符合要求").append(enterLine);
+            if(!importc.isColFromHeader()&&validcates.size()>colValues.length){
+                sb.append("第" + (j + 1) + "行只有"+colValues.length+"列，不符合要求").append(enterLine);
                 errorLineNum.add(j);
                 bFlag=false;
                 continue;
@@ -117,7 +117,7 @@ public class CsvContext {
                     if(importc.isColFromHeader()){
                         for (ColValidcateProperties valid: validcates) {
                             if(valid.getName().equals(headers[i])){
-                                v = validcates.get(i);
+                                v = valid;
                                 break;
                             }
                         }
