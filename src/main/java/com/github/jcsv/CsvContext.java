@@ -111,14 +111,8 @@ public class CsvContext {
                 continue;
             }
             for (int i = 0; i < colValues.length; i++) {
-                if (validcates.size() > i && validcates != null && validcates.get(i) != null) {
+                if (importc.isColFromHeader()||(validcates.size() > i && validcates != null && validcates.get(i) != null)) {
                     String errorRow = "第" + (j + 1) + "行";
-                    if (importc.isCheckColumnSize() && validcates.size() != colValues.length) {
-                        sb.append(errorRow + "包含关键字空格或者逗号").append(enterLine);
-                        bFlag=false;
-                        break;
-                    }
-
                     ColValidcateProperties v = null;
                     if(importc.isColFromHeader()){
                         for (ColValidcateProperties valid: validcates) {
@@ -128,6 +122,11 @@ public class CsvContext {
                             }
                         }
                     }else{
+                        if (importc.isCheckColumnSize() && validcates.size() != colValues.length) {
+                            sb.append(errorRow + "包含关键字空格或者逗号").append(enterLine);
+                            bFlag=false;
+                            break;
+                        }
                         v = validcates.get(i);
                     }
                     if(v==null){
@@ -156,7 +155,7 @@ public class CsvContext {
                     }
                 } else {
                     if (headers.length != colValues.length) {
-                        sb.append("第" + j + "行有关键字空格或者逗号").append(enterLine);
+                        sb.append("第" + (j + 1)+ "行有关键字空格或者逗号").append(enterLine);
                         bFlag=false;
                         break;
                     }
