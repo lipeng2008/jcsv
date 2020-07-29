@@ -96,7 +96,7 @@ public class CsvContext {
                 bFlag=false;
                 continue;
             }
-            String[] colValues = line.split(importc.getSeparator());
+            String[] colValues = line.split(importc.getSeparator(),headers.length);
             if (colValues == null || colValues.length == 0) {
                 sb.append("第" + (j + 1) + "行为空").append(enterLine);
                 errorLineNum.add(j);
