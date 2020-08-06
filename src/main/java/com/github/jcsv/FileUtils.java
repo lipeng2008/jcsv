@@ -113,6 +113,10 @@ public class FileUtils {
      * @throws Exception
      */
     public static void createCsv(String destFile,String str) throws Exception {
+        File file=new File(destFile);
+        if(file.getParentFile()!=null&&!file.getParentFile().exists()){
+            file.getParentFile().mkdirs();
+        }
         FileOutputStream fos = null;
         try{
             fos = new FileOutputStream(destFile,true);
