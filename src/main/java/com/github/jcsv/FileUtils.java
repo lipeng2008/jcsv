@@ -199,7 +199,7 @@ public class FileUtils {
         // 设置可以识别Html文件  
         response.setContentType("text/html");
         // 2.设置文件头：最后一个参数是设置下载文件名  
-        response.setHeader("Content-Disposition", "attachment;filename=" + filename.getName());
+        response.setHeader("Content-Disposition", "attachment;filename=" + new String(filename.getName().getBytes("UTF-8"), "ISO8859-1"));
         //System.out.println("fileName = " + filename.getName());
         // （这里  可以设置成excel格式 ：response.setHeader("Content-Disposition",
         // "attachment;fileName=" + “文件名” + ".xsl");
