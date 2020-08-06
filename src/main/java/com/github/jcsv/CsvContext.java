@@ -265,7 +265,7 @@ public class CsvContext {
             for (String col : cols) {
                 mm.add(StringUtils.defaultString((String) item.get(col), ""));
             }
-            sb.append(String.join(",", mm)).append("\\r\\n");
+            sb.append(String.join(",", mm)).append("\r\n");
         }
         String filePath = getTempPath();
         String result = filePath + properties.getFileName() + ".csv";
