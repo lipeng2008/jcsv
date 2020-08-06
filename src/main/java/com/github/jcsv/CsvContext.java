@@ -260,6 +260,7 @@ public class CsvContext {
         }
         String[] cols = properties.getCols().split(",");
         StringBuilder sb = new StringBuilder();
+        sb.append(properties.getHeaders()).append("\r\n");
         for (Map<String, Object> item : data) {
             List<String> mm = new ArrayList<>();
             for (String col : cols) {
