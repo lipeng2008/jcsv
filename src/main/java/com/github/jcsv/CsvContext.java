@@ -264,7 +264,8 @@ public class CsvContext {
         for (Map<String, Object> item : data) {
             List<String> mm = new ArrayList<>();
             for (String col : cols) {
-                mm.add(StringUtils.defaultString((String) item.get(col), ""));
+                String value=item.get(col)==null?"":item.get(col).toString();
+                mm.add(value);
             }
             sb.append(String.join(",", mm)).append("\r\n");
         }
