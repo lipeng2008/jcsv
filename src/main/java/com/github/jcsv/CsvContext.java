@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -249,6 +250,16 @@ public class CsvContext {
      */
     public String export(String id, List<Map> data) throws Exception {
         CsvExportProperties properties = getExportConifg(id);
+        return export(properties,data);
+    }
+
+    /**
+     * @param properties
+     * @param data
+     * @return
+     * @throws Exception
+     */
+    private String export(CsvExportProperties properties, List<Map> data) throws Exception {
         if (StringUtils.isBlank(properties.getHeaders()) || StringUtils.isBlank(properties.getCols())) {
             throw new CsvExportException("headers or cols is empty");
         }
@@ -312,6 +323,13 @@ public class CsvContext {
         FileUtils.downloadFile(response, finalName);
         org.apache.commons.io.FileUtils.deleteQuietly(new File(finalName));
     }
+    public void export(String id, List<Map> data, HttpServletResponse response, Function<CsvExportProperties,CsvExportProperties> headerFunction) throws Exception {
+        CsvExportProperties properties = getExportConifg(id);
+        properties=headerFunction.apply(properties);
+        String finalName = this.export(properties, data);
+        FileUtils.downloadFile(response, finalName);
+        org.apache.commons.io.FileUtils.deleteQuietly(new File(finalName));
+    }
 
     /**
      * @param id
@@ -324,11 +342,6 @@ public class CsvContext {
         CsvExportProperties properties = getExportConifg(id);
         String header=properties.getHeaders();
         String strCols=properties.getCols();
-        if(StringUtils.isNotBlank(properties.getHeaderWrapper())){
-            HeaderWrapper wrapper=(HeaderWrapper)SpringContext.getSingleton().getBean(properties.getHeaderWrapper());
-            header=wrapper.getHeader(header);
-            strCols=wrapper.getCols(strCols);
-        }
         if (StringUtils.isBlank(header) || StringUtils.isBlank(strCols)) {
             throw new CsvExportException("headers or cols is empty");
         }
