@@ -1,10 +1,7 @@
 package com.github.jcsv;
 
 import com.alibaba.fastjson.JSON;
-import com.github.jcsv.exportj.CompressUtil;
-import com.github.jcsv.exportj.CsvExportException;
-import com.github.jcsv.exportj.CsvExportProperties;
-import com.github.jcsv.exportj.Paging;
+import com.github.jcsv.exportj.*;
 import com.github.jcsv.importj.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -325,13 +322,20 @@ public class CsvContext {
      */
     public String export(String id, Paging page, String prefix) throws Exception {
         CsvExportProperties properties = getExportConifg(id);
-        if (StringUtils.isBlank(properties.getHeaders()) || StringUtils.isBlank(properties.getCols())) {
+        String header=properties.getHeaders();
+        String strCols=properties.getCols();
+        if(StringUtils.isNotBlank(properties.getHeaderWrapper())){
+            HeaderWrapper wrapper=(HeaderWrapper)SpringContext.getSingleton().getBean(properties.getHeaderWrapper());
+            header=wrapper.getHeader(header);
+            strCols=wrapper.getCols(strCols);
+        }
+        if (StringUtils.isBlank(header) || StringUtils.isBlank(strCols)) {
             throw new CsvExportException("headers or cols is empty");
         }
         if (page == null) {
             throw new CsvExportException("page is null");
         }
-        String[] cols = properties.getCols().split(",");
+        String[] cols = strCols.split(",");
         int pageNum = 1;
         String filePath = getTempPath();
         File fileP = new File(filePath);
@@ -355,7 +359,7 @@ public class CsvContext {
             }
             int fileNum = 1;
             List<Map> list = page.getList(pageSize, pageNum);
-            FileUtils.createCsv(compressPath + fileNum + ".csv", properties.getHeaders() + "\r\n");
+            FileUtils.createCsv(compressPath + fileNum + ".csv", header + "\r\n");
             long compressFileSize = 0;
             while (list != null && list.size() > 0) {
                 log.info("查询第{}页，result size:{}", pageNum, pageSize);
@@ -372,7 +376,7 @@ public class CsvContext {
                         sb.delete(0, sb.length());
                         compressFileSize = 0;
                         fileNum++;
-                        FileUtils.createCsv(compressPath + fileNum + ".csv", properties.getHeaders() + "\r\n");
+                        FileUtils.createCsv(compressPath + fileNum + ".csv", header + "\r\n");
                     }
                 }
                 if (sb.length() > 0) {
@@ -394,7 +398,7 @@ public class CsvContext {
             List<Map> list = page.getList(pageSize, pageNum);
 
             String finalPath = filePath + properties.getFileName() + System.currentTimeMillis() + ".csv";
-            FileUtils.createCsv(finalPath, properties.getHeaders() + "\r\n");
+            FileUtils.createCsv(finalPath, header + "\r\n");
             while (list != null && list.size() > 0) {
                 StringBuilder sb = new StringBuilder();
                 for (Map<String, Object> item : list) {

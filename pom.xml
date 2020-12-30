@@ -6,7 +6,7 @@
 
     <groupId>com.github.lipengxs.jcsv</groupId>
     <artifactId>jcsv-spring-boot-starter</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.7</version>
     <packaging>jar</packaging>
 
     <name>Jcsv - Spring Boot Starter</name>

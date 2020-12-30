@@ -11,6 +11,7 @@ import lombok.Data;
 public class CsvExportProperties {
     private String id;
     private String headers;
+    private String headerWrapper;
     private String desc;
     private String cols;
     private String fileName;
